@@ -1,24 +1,15 @@
-us-west1-docker.pkg.dev/qwiklabs-gcp-01-a84b0664f0c4/my-repository/sample-app:v1.0
 steps:
-  # Step 1: Compile the Go Application
-  - name: 'gcr.io/cloud-builders/go'
-    env: ['GOPATH=/gopath']
-    args: ['build', '-o', 'main', 'main.go']
-
-  # Step 2: Build the Docker image for the Go application
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-west1-docker.pkg.dev/$qwiklabs-gcp-01-a84b0664f0c4/my-repository/hello-cloudbuild-dev:v1.0', '.']
-
-  # Step 3: Push the Docker image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-west1-docker.pkg.dev/$qwiklabs-gcp-01-a84b0664f0c4/my-repository/hello-cloudbuild-dev:v1.0']
-
-  # Step 4: Apply the production deployment YAML file to the production namespace
-  - name: 'gcr.io/cloud-builders/kubectl'
-    id: 'Deploy'
-    args: ['-n', 'dev', 'apply', '-f', 'dev/deployment.yaml']
-    env:
-    - 'CLOUDSDK_COMPUTE_REGION=us-west1-c'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=hello-cluster'
-options:
- logging: CLOUD_LOGGING_ONLY
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-west1-docker.pkg.dev/qwiklabs-gcp-01-a84b0664f0c4/my-repository/sample-app:v1.0', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-west1-docker.pkg.dev/qwiklabs-gcp-01-a84b0664f0c4/my-repository/sample-app:v1.0']
+- name: 'gcr.io/cloud-builders/gke-deploy'
+  args:
+  - run
+  - --filename=dev/deployment.yaml
+  - --image=us-west1-docker.pkg.dev/qwiklabs-gcp-01-a84b0664f0c4/my-repository/sample-app:v1.0
+  - --location=us-west1-c
+  - --cluster=hello-cluster
+  - --namespace=dev
+images:
+- 'us-west1-docker.pkg.dev/qwiklabs-gcp-01-a84b0664f0c4/my-repository/sample-app:v1.0'
