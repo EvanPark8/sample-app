@@ -1,15 +1,26 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '-t', 'us-west1-docker.pkg.dev/qwiklabs-gcp-01-a84b0664f0c4/my-repository/sample-app:v1.0', '.']
+
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'us-west1-docker.pkg.dev/qwiklabs-gcp-01-a84b0664f0c4/my-repository/sample-app:v1.0']
-- name: 'gcr.io/cloud-builders/gke-deploy'
+
+- name: 'gcr.io/cloud-builders/gcloud'
   args:
-  - run
-  - --filename=dev/deployment.yaml
-  - --image=us-west1-docker.pkg.dev/qwiklabs-gcp-01-a84b0664f0c4/my-repository/sample-app:v1.0
-  - --location=us-west1-c
-  - --cluster=hello-cluster
-  - --namespace=dev
+  - container
+  - clusters
+  - get-credentials
+  - hello-cluster
+  - --zone=us-west1-c
+
+- name: 'gcr.io/cloud-builders/kubectl'
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=us-west1-c'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=hello-cluster'
+  args:
+  - apply
+  - -f
+  - dev/deployment.yaml
+
 images:
 - 'us-west1-docker.pkg.dev/qwiklabs-gcp-01-a84b0664f0c4/my-repository/sample-app:v1.0'
